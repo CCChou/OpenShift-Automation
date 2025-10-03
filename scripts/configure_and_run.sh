@@ -7,8 +7,8 @@ unset $3
 unset $4
 
 # 設定參數（可以在執行腳本時傳入）
-export TARBALL_PATH="${1:-/root/install_source/ansible-navigator-rpm-9.4.tar}"
-export TAR_DEST_PATH="${2:-/root/install_source/ansible-navigator-rpm-9.4}"
+export TARBALL_PATH="${1:-/root/install_source/ansible-navigator-rpm-9.6.tar}"
+export TAR_DEST_PATH="${2:-/root/install_source/ansible-navigator-rpm-9.6}"
 export EE_IMAGE_TAR="${3:-/root/install_source/eeimage-v1.tar}"
 export EE_IMAGE_NAME="${4:-quay.io/rhtw/ee-bas-auto:v1.0}"
 
