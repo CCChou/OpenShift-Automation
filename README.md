@@ -22,10 +22,10 @@
 在進入客戶環境前的準備事項
 
 0. 本機環境準備一台可對外連線的 RHEL 主機
-   - 準備好 GitHub 帳號(optional)
-   - 主機 /etc/host 中設定解析 red hat registry
+   - 準備好 GitHub 帳號(Optional)
+   - 主機 /etc/host 中設定解析 Red Hat registry
    - 檢查 /etc/yum.repos.d/ 內使用預設 RHEL repo
-   - 在 root 下需要有足夠的空間(建議200GB)
+   - 在根目錄下需要有足夠的空間(建議200GB)
 
 1. 註冊目前使用的本地機器
    ```bash
@@ -345,7 +345,12 @@
 
 ### 離線安裝流程
 
-0. Mount DVD/image 掛光碟到機器上
+0. 客戶環境準備一台離線環境的 Bastion RHEL 主機
+   - 檢查 /etc/yum.repos.d/ 內不應有無效的 Repo
+   - 在根目錄下需要有足夠的空間(建議600GB)
+   - 請掛載對應 RHEL 版本的 ISO 檔案至光碟機
+
+1. 將光碟機掛到檔案系統上及設定 YUM Repo
    ```bash
    mount /dev/sr0 /mnt
    
@@ -364,7 +369,7 @@
    enabled = 1
    ```
 
-1. 安裝 KVM 建立一個 RHEL server
+2. 安裝 KVM 建立一個 RHEL VM (Optional)
    1. 請確定已於本地 OS 下載欲安裝的虛擬機之 ISO 檔
    2. 按照下方指令下載所需要之 RPM 套件
       ```bash
@@ -422,12 +427,12 @@
    13. 啟動虛擬機後，您可以按照一般流程安裝 RHEL
        ![安裝 RHEL](https://github.com/CCChou/OpenShift-Automation/blob/main/images/kvm-xiii-rhel_installation.png?raw=true)
 
-2. 解開 OpenShift Automation 的 tar
+3. 解開 OpenShift Automation 的 tar
    ```bash
    tar xzvf openshift-automation.tar.gz -C /root
    ```
 
-3. 將 mirror 檔案放至/root/install_source/mirror
+4. 將 mirror 檔案放至/root/install_source/mirror
    ```bash
    ls -l /root/install_source/mirror
    
@@ -438,12 +443,12 @@
    ···
    ```
 
-4. 檢查鏡像檔的md5是否一致
+5. 檢查鏡像檔的md5是否一致
    ```bash
    sh /root/OpenShift-Automation/scripts/checkmd5_verify.sh check /root/install_source/mirror
    ```
 
-5. 依客戶環境需求修改 OpenShift Automation 內的配置 (調整 /root/OpenShift-Automation/roles/ocp_bastion_installer/defaults/main.yml 內的配置)
+6. 依客戶環境需求修改 OpenShift Automation 內的配置 (調整 /root/OpenShift-Automation/roles/ocp_bastion_installer/defaults/main.yml 內的配置)
     ```yaml
     ---
     online: false
@@ -529,12 +534,12 @@
       ip: 172.20.11.59
     ```
 
-6. 執行 configure_and_run.sh 腳本
+7. 執行 configure_and_run.sh 腳本並帶入 RHEL 版本
    ```bash
-   sh /root/OpenShift-Automation/scripts/configure_and_run.sh
+   sh /root/OpenShift-Automation/scripts/configure_and_run.sh 9.6
    ```
 
-7. 設定節點網路連線
+8. 設定節點網路連線
     1. 請於重新開機後，執行下列指令以 root 身分進行設定
        ```
        sudo -i
@@ -564,7 +569,7 @@
        ```
        ![解析檢查](https://github.com/CCChou/OpenShift-Automation/blob/56c6724fc10b6b1d468fef64973b09d0d49e2bbf/images/7-check_hostname.png)
 
-8. 透過 curl 的方式呼叫 coreos-installer 執行 coreos install 指令
+9. 透過 curl 的方式呼叫 coreos-installer 執行 coreos install 指令
     - 在各個主機內執行 coreos-installer 腳本，執行順序 bootstrap > master > worker
       ```bash
       # 以下指令在 curl 執行後會自行執行，role 包含 bootstrap, master, worker

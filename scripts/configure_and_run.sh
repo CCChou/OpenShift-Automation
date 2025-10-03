@@ -2,15 +2,14 @@
 
 # 清除參數的環境變數
 unset $1
-unset $2
-unset $3
-unset $4
+
 
 # 設定參數（可以在執行腳本時傳入）
-export TARBALL_PATH="${1:-/root/install_source/ansible-navigator-rpm-9.4.tar}"
-export TAR_DEST_PATH="${2:-/root/install_source/ansible-navigator-rpm-9.4}"
-export EE_IMAGE_TAR="${3:-/root/install_source/eeimage-v1.tar}"
-export EE_IMAGE_NAME="${4:-quay.io/rhtw/ee-bas-auto:v1.0}"
+export RHEL_MINOR_VERSION="${1:-9.6}"
+export TARBALL_PATH="/root/install_source/ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar"
+export TAR_DEST_PATH="/root/install_source/ansible-navigator-rpm-${RHEL_MINOR_VERSION}"
+export EE_IMAGE_TAR="/root/install_source/eeimage-v1.tar"
+export EE_IMAGE_NAME="quay.io/rhtw/ee-bas-auto:v1.0"
 
 # 確認參數
 echo -e "[$(date)] \e[32mINFO\e[0m： TARBALL_PATH   = $TARBALL_PATH"
