@@ -21,30 +21,33 @@ nfs_csi(){
     oc create namespace "${STORAGE_NAMESPACE}" || echo " ${STORAGE_NAMESPACE} 已存在。"
 
     # 創建 ServiceAccount 和 RBAC 權限
-    envsubst < ${YAML_DIR}/${CSI_MODULE}/rbac.yaml |oc apply -f -
+    envsubst < ${YAML_DIR}/${CSI_MODULE}/rbac-csi-nfs.yaml |oc apply -f -
 
     oc adm policy add-scc-to-user privileged -z csi-nfs-controller-sa -n ${STORAGE_NAMESPACE}
     oc adm policy add-scc-to-user privileged -z csi-nfs-node-sa -n ${STORAGE_NAMESPACE}
     
     # 創建 csi driver
-    envsubst < ${YAML_DIR}/${CSI_MODULE}/csi-driver.yaml |oc apply -f -
+    envsubst < ${YAML_DIR}/${CSI_MODULE}/csi-nfs-driverinfo.yaml |oc apply -f -
     
     # 部署 NFS Controller
     if oc get deployment csi-nfs-controller -n "${STORAGE_NAMESPACE}" &> /dev/null; then
         echo -e "[$(date)] \e[32mINFO\e[0m：NFS Controller 已存在，跳過部署。"
     else
-      envsubst < ${YAML_DIR}/${CSI_MODULE}/deployment.yaml |oc apply -f -
+      envsubst < ${YAML_DIR}/${CSI_MODULE}/csi-nfs-controller.yaml |oc apply -f -
     fi
 
     # 部署 NFS Node
     if oc get daemontset csi-nfs-node -n "${STORAGE_NAMESPACE}" &> /dev/null; then
         echo -e "[$(date)] \e[32mINFO\e[0m：NFS Node Daemon 已存在，跳過部署。"
     else
-      envsubst < ${YAML_DIR}/${CSI_MODULE}/daemonset.yaml |oc apply -f -
+      envsubst < ${YAML_DIR}/${CSI_MODULE}/csi-nfs-node.yaml |oc apply -f -
     fi
 
     # 創建 StorageClass
     envsubst < ${YAML_DIR}/${CSI_MODULE}/storageclass.yaml |oc apply -f -
+
+    # 創建 SnapshotClass
+    envsubst < ${YAML_DIR}/${CSI_MODULE}/snapshotclass.yaml |oc apply -f -
 
     # 設置預設 StorageClass
     oc patch storageclass ${STORAGE_CLASS_NAME} -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'

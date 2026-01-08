@@ -10,7 +10,7 @@
 # sh checkmd5_verify.sh check /some/other/path
 
 
-DEFAULT_DIR="/root/install/ocp418"
+DEFAULT_DIR="/root/install/ocp"
 TARGET_DIR="${2:-$DEFAULT_DIR}"
 LOG_FILE="checkmd5_verify.log"
 

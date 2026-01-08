@@ -91,7 +91,7 @@ git_clone(){
   git clone https://github.com/CCChou/ocp_bastion_installer.git ${OCP_INSTALLER_DIR}
 
   git clone https://github.com/CCChou/OpenShift-EaaS-Practice.git /root/OpenShift-EaaS-Practice
-  tar cvf /root/install_source/gitops.tar /root/OpenShift-EaaS-Practice
+  #tar cvf /root/install_source/gitops.tar /root/OpenShift-EaaS-Practice
 
   echo -e "[$(date)] \e[32mINFO\e[0m：git_clone 執行完成"
 }
@@ -156,7 +156,8 @@ get_tools(){
   echo -e "[$(date)] \e[32mINFO\e[0m：helm 下載完成"
 
   # 下載 latest mirror registry
-  wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/${MIRROR_REGISTRY_VERSION}/mirror-registry.tar.gz -P /root/install_source
+  #wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/${MIRROR_REGISTRY_VERSION}/mirror-registry.tar.gz -P /root/install_source
+  wget https://mirror.openshift.com/pub/cgw/mirror-registry/${MIRROR_REGISTRY_VERSION}/mirror-registry-${ARCHITECTURE}.tar.gz -P /root/install_source
   echo -e "[$(date)] \e[32mINFO\e[0m：mirror registry 下載完成"
 
   # 下載 trident installer
@@ -212,7 +213,7 @@ haproxy_configure: true
 
 # 鏡像庫配置
 registry_configure: true
-mirrorRegistryDir: /root/install_source/mirror-registry.tar.gz
+mirrorRegistryDir: /root/install_source/mirror-registry-${ARCHITECTURE}.tar.gz
 quayRoot: /mirror-registry
 quayStorage: /mirror-registry/storage
 registryPassword: ${REGISTRY_PASSWORD}
@@ -222,7 +223,7 @@ ntp_server_configure: true
 # NTP client
 ntp_client_configure: true
 ntp_server_ip: ${BASTION_IP}
-butaneDir: /root/install_source/butane-amd64
+butaneDir: /root/install_source/${ARCHITECTURE}-amd64
 
 # OCP 相關配置
 ocp_configure: true
@@ -241,7 +242,7 @@ pullSecretDir: /root/install_source/pull-secret.txt
 mirror: true
 ocmirrorSource: /root/install_source/oc-mirror.${RHEL_VERSION}.tar.gz
 imageSetFile: /root/install_source/mirror
-reponame: ocp418
+reponame: ocp420
 
 # 節點的基本設定 (將不需要的節點註解掉)
 bastion:
@@ -290,13 +291,13 @@ patch_imageset_config(){
   nfs-csi)    
     yq eval '
       .mirror.additionalImages += [
-      {"name": "registry.k8s.io/sig-storage/csi-resizer:v1.13.1"},
-      {"name": "registry.k8s.io/sig-storage/csi-provisioner:v5.2.0"},
-      {"name": "registry.k8s.io/sig-storage/csi-snapshotter:v8.2.0"},
-      {"name": "registry.k8s.io/sig-storage/livenessprobe:v2.15.0"},
-      {"name": "registry.k8s.io/sig-storage/nfsplugin:v4.11.0"},
-      {"name": "registry.k8s.io/sig-storage/snapshot-controller:v8.2.0"},
-      {"name": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.13.0"}
+      {"name": "registry.k8s.io/sig-storage/csi-resizer:v1.14.0"},
+      {"name": "registry.k8s.io/sig-storage/csi-provisioner:v5.3.0"},
+      {"name": "registry.k8s.io/sig-storage/csi-snapshotter:v8.3.0"},
+      {"name": "registry.k8s.io/sig-storage/livenessprobe:v2.17.0"},
+      {"name": "registry.k8s.io/sig-storage/nfsplugin:v4.12.1"},
+      {"name": "registry.k8s.io/sig-storage/snapshot-controller:v8.3.0"},
+      {"name": "registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.15.0"}
     ]' /root/OpenShift-Automation/yaml/imageset-config.yaml -i    
     ;;
   trident)
@@ -330,10 +331,10 @@ untar_oc_mirror(){
 
   chmod a+x /usr/bin/oc-mirror
 
-  cp /root/OpenShift-Automation/yaml/imageset-config.yaml /root/install/ocp418
+  cp /root/OpenShift-Automation/yaml/imageset-config.yaml /root/install/ocp
 
   echo -e "[$(date)] \e[32mINFO\e[0m：untar_oc_mirror 執行完成"
-  echo -e "[$(date)] \e[32mINFO\e[0m：prep_script 腳本執行完成，請調整 /root/install/ocp418/imageset-config.yaml 配置後執行下個步驟"
+  echo -e "[$(date)] \e[32mINFO\e[0m：prep_script 腳本執行完成，請調整 /root/install/ocp/imageset-config.yaml 配置後執行下個步驟"
 }
 
 main

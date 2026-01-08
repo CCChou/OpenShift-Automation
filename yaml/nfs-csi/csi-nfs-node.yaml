@@ -17,8 +17,8 @@ spec:
       labels:
         app: csi-nfs-node
     spec:
-      hostNetwork: true # original nfs connection would be broken without hostNetwork setting
-      dnsPolicy: ClusterFirstWithHostNet # available values: Default, ClusterFirstWithHostNet, ClusterFirst
+      hostNetwork: true  # original nfs connection would be broken without hostNetwork setting
+      dnsPolicy: ClusterFirstWithHostNet  # available values: Default, ClusterFirstWithHostNet, ClusterFirst
       serviceAccountName: csi-nfs-node-sa
       priorityClassName: system-node-critical
       securityContext:
@@ -30,7 +30,7 @@ spec:
         - operator: "Exists"
       containers:
         - name: liveness-probe
-          image: bastion.${OCP_DOMAIN}:8443/ocp${OCP_VERSION}/sig-storage/livenessprobe:v2.15.0
+          image: registry.k8s.io/sig-storage/livenessprobe:v2.17.0
           args:
             - --csi-address=/csi/csi.sock
             - --probe-timeout=3s
@@ -50,7 +50,7 @@ spec:
               drop:
                 - ALL
         - name: node-driver-registrar
-          image: bastion.${OCP_DOMAIN}:8443/ocp${OCP_VERSION}/sig-storage/csi-node-driver-registrar:v2.13.0
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.15.0
           args:
             - --v=2
             - --csi-address=/csi/csi.sock
@@ -85,7 +85,7 @@ spec:
               drop:
                 - ALL
             allowPrivilegeEscalation: true
-          image: bastion.${OCP_DOMAIN}:8443/ocp${OCP_VERSION}/sig-storage/nfsplugin:v4.11.0
+          image: registry.k8s.io/sig-storage/nfsplugin:v4.12.1
           args:
             - "-v=5"
             - "--nodeid=$(NODE_ID)"

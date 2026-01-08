@@ -8,12 +8,12 @@ data:
     enableUserWorkload: true
     prometheusK8s:
       retention: 24h
-      retentionSize: 5GB
+      retentionSize: 25GB
       volumeClaimTemplate:
         spec:
           resources:
             requests:
-              storage: 5Gi
+              storage: 30Gi
     alertmanagerMain:
       volumeClaimTemplate:
         spec:

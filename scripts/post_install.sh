@@ -105,21 +105,27 @@ mirror_source_config(){
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
 
   # 查找 redhat operator catalogsource
-  redhat_operator_cs=$(find /root/oc-mirror-workspace/ -maxdepth 2 -path "*/results-*" -type f -name "catalogSource-cs-redhat-operator-index.yaml")
-  icsp=$(find /root/oc-mirror-workspace/ -maxdepth 2 -path "*/results-*" -type f -name "imageContentSourcePolicy.yaml")
+  oc_mirror_workspace="/root/mirror-workspace"
+  redhat_operator_cs="$(ls -1 $oc_mirror_workspace/cluster-resources/cs-redhat-operator-index-v*.yaml | head -n 1)"
+  idms="$oc_mirror_workspace/cluster-resources/idms-oc-mirror.yaml"
+  itms="$oc_mirror_workspace/cluster-resources/itms-oc-mirror.yaml"
 
   # 檢查是否找到文件
-  if [ ! -f "$redhat_operator_cs" ] || [ ! -f "$icsp" ]; then
-    echo -e "[$(date)] \e[31mERROR\e[0m：未找到 catalogSource-cs-redhat-operator-index.yaml 和 imageContentSourcePolicy.yaml 文件"
+  if [ ! -f "$redhat_operator_cs" ] || [ ! -f "$idms" ] || [ ! -f "$itms" ]; then
+    echo -e "[$(date)] \e[31mERROR\e[0m：未找到 catalogSource-cs-redhat-operator-index.yaml / idms-oc-mirror.yaml / itms-oc-mirror.yaml  文件"
     exit 1
   fi
 
   # 找到文件後將 name 替換成 redhat-operators
-  sed -i.bak '/^ *name: /s/cs-redhat-operator-index/redhat-operators/' $redhat_operator_cs
+  #sed -i.bak '/^ *name: /s/cs-redhat-operator-index/redhat-operators/' $redhat_operator_cs
+  sed -i.bak -E \
+  '/^[[:space:]]*name:[[:space:]]*cs-redhat-operator-index/s/cs-redhat-operator-index[^[:space:]]*/redhat-operators/' \
+  "$redhat_operator_cs"
 
   # 將 CatalogSource apply 
   oc apply -f $redhat_operator_cs
-  oc apply -f $icsp
+  oc apply -f $idms
+  oc apply -f $itms
 
   echo -e "[$(date)] \e[32mINFO\e[0m：mirror_source_config 執行完成"
 }
@@ -163,7 +169,7 @@ csi_installation(){
   echo -e "[$(date)] \e[32mINFO\e[0m：開始執行 csi_installation..."
 
   export OCP_DOMAIN=$(oc get ingress.config.openshift.io cluster --template={{.spec.domain}} | sed -e "s/^apps.//")
-  export OCP_VERSION=418
+  export OCP_VERSION=420
     
   source /root/OpenShift-Automation/scripts/install_csi.sh
 

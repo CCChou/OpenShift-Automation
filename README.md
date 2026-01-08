@@ -73,9 +73,9 @@
      - [helm v3](https://mirror.openshift.com/pub/openshift-v4/clients/helm/)
        ![helm cli](https://github.com/CCChou/OpenShift-Automation/blob/main/images/helm-latest.png)
        > helm v3 請使用 latest 版本。
-     - [mirror-registry](https://mirror.openshift.com/pub/openshift-v4/clients/mirror-registry/)
+     - [mirror-registry](https://mirror.openshift.com/pub/cgw/mirror-registry/)
        ![mirror-registry](https://github.com/CCChou/OpenShift-Automation/blob/main/images/mirror-registry.png)
-       > mirror registry v1 請使用最新版本。
+       > mirror registry v2 請使用最新版本。
      - [RHEL 開機用光碟 (REHL OS)](https://access.redhat.com/downloads/content/rhel)
      - [CoreOS 開機用光碟(rhcos)](https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/)
 
@@ -128,7 +128,7 @@
    ```
    
 6. 使用 oc-mirror 指令將所需的鏡像拉取到本機
-   * 使用 [Red Hat OpenShift Container Platform Operator Update Information Checker](https://access.redhat.com/labs/ocpouic/?upgrade_path=4.16%20to%204.18) 查詢 operator channel 及 version
+   * 使用 [Red Hat OpenShift Container Platform Operator Update Information Checker](https://access.redhat.com/labs/ocpouic/?upgrade_path=4.18%20to%204.20) 查詢 operator channel 及 version
 
    1. 取得常用 Operator 之資訊
       1. 取得目標版本的可用目錄
@@ -233,9 +233,9 @@
    3. 將鏡像從特定的 ImageSetConfiguration 中同步到磁碟
       - 執行 oc mirror 指令將指定 ImageSetConfiguration 中的鏡像同步到磁碟上
         ```bash
-        cd /root/install/ocp418
+        cd /root/install/ocp
 
-        oc-mirror --config=./imageset-config.yaml file://.
+        oc-mirror -c /root/install/ocp/local-mirror/imageset-config.yaml file:///root/install/ocp/local-mirror --workspace /root/install/ocp/workspace --cache-dir /root/install/ocp/cache  --v2
         ```
       - 驗證是否已建立鏡像 .tar 檔案
         ```bash
@@ -281,8 +281,8 @@
        - quay.io/rhtw/postgres:17.5
        - quay.io/rhtw/gitea:1.21.7
        - quay.io/minio/minio:latest
-       - quay.io/rhtw/tools
-       - quay.io/rhtw/gitops-envsub
+       - quay.io/rhtw/tools:1.2.1
+       - quay.io/rhtw/gitops-envsub:latest
 
    4. 建立鏡像檔的md5檢查檔
       - 建立md5檢查檔
@@ -355,7 +355,8 @@
    mount /dev/sr0 /mnt
    
    vim /etc/yum.repos.d/local.repo
-   
+   ```
+   ```bash
    [BaseOS]
    name = BaseOS
    baseurl = file:///mnt/BaseOS
