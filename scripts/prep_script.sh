@@ -223,7 +223,7 @@ ntp_server_configure: true
 # NTP client
 ntp_client_configure: true
 ntp_server_ip: ${BASTION_IP}
-butaneDir: /root/install_source/${ARCHITECTURE}-amd64
+butaneDir: /root/install_source/butane-${ARCHITECTURE}
 
 # OCP 相關配置
 ocp_configure: true
