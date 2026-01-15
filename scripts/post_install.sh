@@ -105,7 +105,7 @@ mirror_source_config(){
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
 
   # 查找 redhat operator catalogsource
-  oc_mirror_workspace="/root/mirror-workspace"
+  oc_mirror_workspace="/root/install_source/mirror/working-dir"
   redhat_operator_cs="$(ls -1 $oc_mirror_workspace/cluster-resources/cs-redhat-operator-index-v*.yaml | head -n 1)"
   idms="$oc_mirror_workspace/cluster-resources/idms-oc-mirror.yaml"
   itms="$oc_mirror_workspace/cluster-resources/itms-oc-mirror.yaml"
