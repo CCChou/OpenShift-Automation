@@ -57,7 +57,7 @@ env_prep(){
   CREATE_DIRS=(
     "/root/install_source"
     "/root/.docker"
-    "/root/install/ocp418"
+    "/root/install/ocp"
     "/root/install_source/mirror"
   )
 
@@ -79,7 +79,12 @@ env_prep(){
   done
     
   # 將 pull-secret 匯到 config.json
-  cat /root/pull-secret | jq > /root/.docker/config.json
+  if [ -f /root/pull-secret ]; then
+    cat /root/pull-secret | jq . > /root/.docker/config.json
+  else
+    echo "[ERROR] /root/pull-secret 不存在，無法產生 /root/.docker/config.json" >&2
+    exit 1
+  fi
 
   echo -e "[$(date)] \e[32mINFO\e[0m：env_prep 執行完成"
 }
@@ -101,10 +106,22 @@ build_ee_image(){
   echo -e "[$(date)] \e[32mINFO\e[0m：開始執行 build_ee_image..."
 
   # 拉取 ee 鏡像
-  podman pull quay.io/rhtw/ee-bas-auto:v1.0
-    
+  podman pull quay.io/rhtw/ee-bas-auto:v1.0 || {
+    echo -e "[$(date)] \e[31mERROR\e[0m：podman pull 失敗" >&2
+    exit 1
+  }
+
+  # 確認 image 是否存在
+  podman image exists "quay.io/rhtw/ee-bas-auto:v1.0" || {
+    echo -e "[$(date)] \e[31mERROR\e[0m：Image quay.io/rhtw/ee-bas-auto:v1.0 不存在" >&2
+    exit 1
+  }
+
   # 將 ee 鏡像包成 tar 檔
-  podman save -o /root/install_source/${EE_IMAGE_NAME}-v1.tar ee-bas-auto:v1.0
+  podman save -o "/root/install_source/${EE_IMAGE_NAME}-v1.tar" "quay.io/rhtw/ee-bas-auto:v1.0" || {
+    echo -e "[$(date)] \e[31mERROR\e[0m：podman save 失敗" >&2
+    exit 1
+  }
 
   echo -e "[$(date)] \e[32mINFO\e[0m：build_ee_image 執行完成"
 }
@@ -112,18 +129,33 @@ build_ee_image(){
 # 下載 Ansible naigator 所需 rpm
 download_ansible(){
   echo -e "[$(date)] \e[32mINFO\e[0m：開始執行 download_ansible..."
-  
+
   # 檢查 tar 檔是否存在
-  if [ ! -f "ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar" ]; then
+  if [ ! -f "/root/install_source/ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar" ]; then
     echo -e "[$(date)] \e[32mINFO\e[0m：文件 ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar 不存在，開始執行操作..."
 
     dnf repolist
     # 下載 AAP rpm
     echo -e "[$(date)] \e[32mINFO\e[0m：開始下載 AAP rpm..."
-    dnf install --enablerepo="${AAP_REPO}" --downloadonly --installroot="${AAP_DIR}/rootdir" --downloaddir="${AAP_DIR}/ansible-navigator-rpm-${RHEL_MINOR_VERSION}" --releasever="${RHEL_MINOR_VERSION}" ansible-navigator -y
+    dnf install --enablerepo="${AAP_REPO}" \
+      --downloadonly \
+      --installroot="${AAP_DIR}/rootdir" \
+      --downloaddir="${AAP_DIR}/ansible-navigator-rpm-${RHEL_MINOR_VERSION}" \
+      --releasever="${RHEL_MINOR_VERSION}" \
+      ansible-navigator -y
+
+    # 檢查 RPM 是否下載成功
+    if ! ls -1 "${AAP_DIR}/ansible-navigator-rpm-${RHEL_MINOR_VERSION}"/*.rpm >/dev/null 2>&1; then
+      echo -e "[$(date)] \e[31mERROR\e[0m：RPM 未下載成功，目錄內找不到 .rpm 檔案" >&2
+      exit 1
+    fi
 
     # 將 AAP RPM 包打包成 tar 檔
-    tar cvf /root/install_source/ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar -C ${AAP_DIR} "ansible-navigator-rpm-${RHEL_MINOR_VERSION}"
+    tar cvf /root/install_source/ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar \
+      -C "${AAP_DIR}" "ansible-navigator-rpm-${RHEL_MINOR_VERSION}" || {
+        echo -e "[$(date)] \e[31mERROR\e[0m：tar 打包失敗" >&2
+        exit 1
+      }
   else
     echo -e "[$(date)] \e[32mINFO\e[0m：文件 ansible-navigator-rpm-${RHEL_MINOR_VERSION}.tar 已存在，跳過操作。"
   fi
