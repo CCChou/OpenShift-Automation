@@ -8,6 +8,7 @@
 | :----: | :----: | :---- |
 | v0.1 | 2025/03/28 | 首次更新 |
 | v1.0 | 2025/06/17 | 4.18 Release |
+| v2.0 | 2026/01/22 | 4.20 Release |
 
 
 ## Related Projects
@@ -199,50 +200,49 @@
          ```
    2. 修改 imageSetConfiguration yaml 配置檔
        ```yaml
-       apiVersion: mirror.openshift.io/v1alpha2
-       kind: ImageSetConfiguration
-       archiveSize: 4
-       storageConfig:                                                      
-         local:
-           path: /root/install/ocp418/metadata
-       mirror:
-         platform:
-           channels:
-           - name: stable-4.18
-             minVersion: 4.18.6
-             maxVersion: 4.16.8
-           graph: true
-         operators:
-         - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.18
-           packages:
-           - name: cluster-logging
-             channels:
-             - name: stable-6.2
-               minVersion: 6.2.1
-               maxVersion: 6.2.1
-           - name: loki-operator 
-             channels:
-             - name: stable-6.2
-               minVersion: 6.2.1
-               maxVersion: 6.2.1
-         additionalImages:
-         - name: registry.redhat.io/rhel8/rhel-guest-image:latest
-         - name: registry.redhat.io/rhel9/rhel-guest-image:latest
+        apiVersion: mirror.openshift.io/v2alpha1
+        kind: ImageSetConfiguration
+        archiveSize: 5
+        mirror:
+          platform:
+            channels:
+              - name: stable-4.20
+                minVersion: 4.20.8
+                maxVersion: 4.20.8
+            graph: true
+          operators:
+            - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.20
+              packages:
+                - name: cluster-logging
+                  channels:
+                    - name: stable-6.4
+                      minVersion: 6.4.1
+                      maxVersion: 6.4.1
+                - name: loki-operator
+                  channels:
+                    - name: stable-6.4
+                      minVersion: 6.4.1
+                      maxVersion: 6.4.1
+          additionalImages:
+            - name: registry.redhat.io/ubi8/ubi:latest
+            - name: registry.redhat.io/ubi9/ubi:latest
        ```
        > 完整請參考 ( yaml > imageset-config.yaml)，請注意頻道和鏡像標籤
    3. 將鏡像從特定的 ImageSetConfiguration 中同步到磁碟
       - 執行 oc mirror 指令將指定 ImageSetConfiguration 中的鏡像同步到磁碟上
         ```bash
         cd /root/install/ocp
-
-        oc-mirror -c /root/install/ocp/local-mirror/imageset-config.yaml file:///root/install/ocp/local-mirror --workspace /root/install/ocp/workspace --cache-dir /root/install/ocp/cache  --v2
+        ```
+        ```bash
+        oc-mirror -c /root/install/ocp/imageset-config.yaml file:///root/install/ocp --cache-dir /root/install/ocp/cache --v2
         ```
       - 驗證是否已建立鏡像 .tar 檔案
         ```bash
-        ls
-
-        mirror_seq1_000000.tar
-        mirror_seq1_000001.tar
+        ls -l /root/install/ocp
+        
+        imageset-config.yaml
+        mirror_000001.tar
+        mirror_000002.tar
         ···
         ```
    * 鏡像清單:
@@ -291,12 +291,13 @@
         ```
       - 驗證是否已建立md5檢查檔
         ```bash
-        ls
+        ls -l  /root/install/ocp
 
-        mirror_seq1_000000.tar
-        mirror_seq1_000000.tar.md5
-        mirror_seq1_000001.tar
-        mirror_seq1_000001.tar.md5
+        imageset-config.yaml
+        mirror_000001.tar
+        mirror_000001.tar.md5
+        mirror_000002.tar
+        mirror_000002.tar.md5
         ···
         ```
 
@@ -307,7 +308,8 @@
      ```
 
     * checkt list (不在openshift-automation.tar.gz內):
-      - [x] mirror_seq
+      - [x] mirror 檔案
+      - [x] imageset-config.yaml
       - [x] qcow2
       - [x] vddk image 
       - [x] ISO
@@ -350,7 +352,7 @@
    - 在根目錄下需要有足夠的空間(建議600GB)
    - 請掛載對應 RHEL 版本的 ISO 檔案至光碟機
 
-1. 將光碟機掛到檔案系統上及設定 YUM Repo
+1. 將光碟機掛到檔案系統上及設定 YUM Repo (參考 /root/OpenShift-Automation/file/local.repo 內的配置)
    ```bash
    mount /dev/sr0 /mnt
    
@@ -433,14 +435,15 @@
    tar xzvf openshift-automation.tar.gz -C /root
    ```
 
-4. 將 mirror 檔案放至/root/install_source/mirror
+4. 將 mirror 檔案及 imageset-config.yaml 放至/root/install_source/mirror
    ```bash
    ls -l /root/install_source/mirror
    
-   mirror_seq1_000000.tar
-   mirror_seq1_000000.tar.md5
-   mirror_seq1_000001.tar
-   mirror_seq1_000001.tar.md5
+   imageset-config.yaml
+   mirror_000001.tar
+   mirror_000001.tar.md5
+   mirror_000002.tar
+   mirror_000002.tar.md5
    ···
    ```
 
@@ -449,7 +452,11 @@
    sh /root/OpenShift-Automation/scripts/checkmd5_verify.sh check /root/install_source/mirror
    ```
 
-6. 依客戶環境需求修改 OpenShift Automation 內的配置 (調整 /root/OpenShift-Automation/roles/ocp_bastion_installer/defaults/main.yml 內的配置)
+6. 依客戶環境需求修改 OpenShift Automation 內的配置 (調整 /root/OpenShift-Automation/roles/inventory 內的配置)
+    ```yaml
+    bastion.ocp4.demo.lab ansible_host=172.20.11.50
+    ```
+7. 依客戶環境需求修改 OpenShift Automation 內的配置 (調整 /root/OpenShift-Automation/roles/ocp_bastion_installer/defaults/main.yml 內的配置)
     ```yaml
     ---
     online: false
@@ -475,7 +482,7 @@
     
     # 鏡像庫配置
     registry_configure: true
-    mirrorRegistryDir: /root/install_source/mirror-registry.tar.gz
+    mirrorRegistryDir: /root/install_source/mirror-registry-amd64.tar.gz
     quayRoot: /mirror-registry
     quayStorage: /mirror-registry/storage
     registryPassword: P@ssw0rd
@@ -483,7 +490,9 @@
     # NTP server
     ntp_server_configure: true
     # NTP client
+    ntp_client_configure: true
     ntp_server_ip: 172.20.11.50
+    butaneDir: /root/install_source/butane-amd64
     
     # OCP 相關配置
     ocp_configure: true
@@ -494,7 +503,7 @@
     # 定義資源檔案之絕對路徑: 如公鑰、OCP 所需指令壓縮檔位置等
     sshKeyDir: /root/.ssh/id_rsa.pub
     ocpInstallDir: /root/install_source/openshift-install-rhel9-amd64.tar.gz
-    ocpClientDir: /root/install_source/openshift-client-linux-amd64-rhel9-4.18.7.tar.gz
+    ocpClientDir: /root/install_source/openshift-client-linux-amd64-rhel9-4.20.8.tar.gz
     # 連線安裝所需之 pull-secret 位置
     pullSecretDir: /root/install_source/pull-secret.txt
     
@@ -502,7 +511,7 @@
     mirror: true
     ocmirrorSource: /root/install_source/oc-mirror.rhel9.tar.gz
     imageSetFile: /root/install_source/mirror
-    reponame: ocp418
+    reponame: ocp420
     
     # 節點的基本設定 (將不需要的節點註解掉)
     bastion:
@@ -535,12 +544,12 @@
       ip: 172.20.11.59
     ```
 
-7. 執行 configure_and_run.sh 腳本並帶入 RHEL 版本
+8. 執行 configure_and_run.sh 腳本並帶入 RHEL 版本
    ```bash
    sh /root/OpenShift-Automation/scripts/configure_and_run.sh 9.6
    ```
 
-8. 設定節點網路連線
+9. 設定節點網路連線
     1. 請於重新開機後，執行下列指令以 root 身分進行設定
        ```
        sudo -i
@@ -570,7 +579,7 @@
        ```
        ![解析檢查](https://github.com/CCChou/OpenShift-Automation/blob/56c6724fc10b6b1d468fef64973b09d0d49e2bbf/images/7-check_hostname.png)
 
-9. 透過 curl 的方式呼叫 coreos-installer 執行 coreos install 指令
+10. 透過 curl 的方式呼叫 coreos-installer 執行 coreos install 指令
     - 在各個主機內執行 coreos-installer 腳本，執行順序 bootstrap > master > worker
       ```bash
       # 以下指令在 curl 執行後會自行執行，role 包含 bootstrap, master, worker
@@ -604,7 +613,7 @@
    # standard: 叢集含有infra節點時
    # compact:  叢集沒有infra節點，即compact mode 或 3+2 節點
    INSTALL_MODE=compact
-   REGISTRY=bastion.ocp.ansible.lab:8443
+   REGISTRY=bastion.ocp4.demo.lab:8443
    GITEA_VERSION=1.21.7
    ```
 
