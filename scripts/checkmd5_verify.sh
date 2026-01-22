@@ -1,10 +1,10 @@
 #!/bin/bash
-# 在預設目錄(/root/install/ocp418)建立md5檢查
+# 在預設目錄(/root/install/ocp)建立md5檢查
 # sh checkmd5_verify.sh create
 # 在指定目錄建立md5檢查檔
 # sh checkmd5_verify.sh create /some/other/path
 
-# 在預設目錄(/root/install/ocp418)檢查
+# 在預設目錄(/root/install/ocp)檢查
 # sh checkmd5_verify.sh check 
 # 在指定目錄檢查
 # sh checkmd5_verify.sh check /some/other/path
