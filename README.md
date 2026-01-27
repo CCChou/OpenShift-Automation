@@ -90,20 +90,20 @@
    EE_IMAGE_NAME=eeimage
 
    # AAP 資訊
-   AAP_REPO=ansible-automation-platform-2.5-for-rhel-9-x86_64-rpms
+   AAP_REPO=ansible-automation-platform-2.6-for-rhel-9-x86_64-rpms
    AAP_DIR=/root/rpm
-   RHEL_MINOR_VERSION=9.4
+   RHEL_MINOR_VERSION=9.6
 
    # 版本資訊
-   OCP_RELEASE=4.18.8
+   OCP_RELEASE=4.20.8
    RHEL_VERSION=rhel9
    ARCHITECTURE=amd64
-   HELM_VERSION=3.15.4
-   MIRROR_REGISTRY_VERSION=1.3.11
+   HELM_VERSION=3.17.1
+   MIRROR_REGISTRY_VERSION=latest
 
    # CSI 資訊
    CSI_TYPE=nfs-csi # nfs-csi | trident
-   TRIDENT_INSTALLER= # trident installer 版本
+   TRIDENT_INSTALLER=25.02.1 # trident installer 版本
 
    # 安裝環境資訊
    INSTALL_MODE=compact
